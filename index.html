@@ -419,7 +419,7 @@
   .gdpr a { color: var(--gold); text-decoration: none; }
   .gdpr a:hover { text-decoration: underline; }
 
-  
+
 </style>
 </head>
 <body>
@@ -447,11 +447,7 @@
 <nav class="progress-bar" id="progress-nav"></nav>
 
 <main>
-  <!-- CONFIG NOTICE (remove after setup) -->
-  <div class="config-notice" id="config-notice">
-    ⚙️ <strong>Configuration requise :</strong> Remplacez <code>VOTRE_URL_APPS_SCRIPT</code> dans le JavaScript par l'URL de votre déploiement Google Apps Script.
-    Consultez le fichier <strong>README.md</strong> inclus pour les instructions complètes.
-  </div>
+
 
   <!-- ========= STEP 1 : Informations personnelles ========= -->
   <div class="form-section active" id="step-1">
@@ -847,14 +843,14 @@
   <p>Merci pour l'envoi de votre questionnaire. Votre dossier a bien été reçu et sera traité dans les meilleurs délais.</p>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+
+<script>
 function maskDate(el) {
   let v = el.value.replace(/\D/g, '').substring(0, 8);
   if (v.length >= 5) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
   else if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
   el.value = v;
 }
-</script><script>
 // =====================================================
 // CONFIG — Replace with your Apps Script Web App URL
 // =====================================================
