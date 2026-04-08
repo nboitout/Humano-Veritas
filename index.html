@@ -973,7 +973,6 @@ function updateNav(step) {
 }
 
 function goTo(step) {
-  if (step > currentStep && !validateStep(currentStep)) return;
   document.getElementById('step-' + currentStep).classList.remove('active');
   currentStep = step;
   document.getElementById('step-' + currentStep).classList.add('active');
@@ -1042,4 +1041,13 @@ async function submitForm() {
     document.getElementById('success-screen').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
-    bt
+    btn.disabled = false;
+    label.textContent = 'Envoyer ma candidature';
+    spinner.style.display = 'none';
+    alert('Une erreur est survenue lors de l\'envoi. Vérifiez votre connexion et réessayez.');
+    console.error(err);
+  }
+}
+</script>
+</body>
+</html>
