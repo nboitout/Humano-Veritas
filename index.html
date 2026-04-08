@@ -1029,14 +1029,14 @@ async function submitForm() {
   const data = collectData();
 
   try {
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
+    // Build query string — GET request is the only reliable method
+    // from a static page to Apps Script (POST body is lost in no-cors mode)
+    const params = new URLSearchParams();
+    Object.entries(data).forEach(([k, v]) => params.append(k, v));
+    const url = APPS_SCRIPT_URL + '?' + params.toString();
 
-    // With no-cors we can't read response, so assume success
+    await fetch(url, { method: 'GET', mode: 'no-cors' });
+
     document.querySelector('main').style.display = 'none';
     document.getElementById('success-screen').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
