@@ -831,10 +831,18 @@
 
     <div class="nav-row">
       <button class="btn btn-outline" onclick="goTo(4)">← Retour</button>
-      <button class="btn btn-gold" id="submit-btn" onclick="submitForm()">
-        <span id="submit-label">Envoyer ma candidature</span>
-        <div class="spinner" id="submit-spinner"></div>
-      </button>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="printForm()" style="border-color:var(--navy);color:var(--navy);">
+          🖨 Aperçu & Imprimer
+        </button>
+        <button class="btn btn-outline" onclick="printFormDemo()" style="border-color:var(--text-muted);color:var(--text-muted);font-size:.78rem;" title="Aperçu avec données fictives">
+          👁 Prévisualiser
+        </button>
+        <button class="btn btn-gold" id="submit-btn" onclick="submitForm()">
+          <span id="submit-label">Envoyer ma candidature</span>
+          <div class="spinner" id="submit-spinner"></div>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1057,6 +1065,222 @@ function submitForm() {
     document.getElementById('success-screen').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, 1000);
+}
+
+function printForm() {
+  const d = collectData();
+
+  function row(label, val) {
+    if (!val) return '';
+    return `<tr><td class="lbl">${label}</td><td class="val">${val.toString().replace(/\n/g,'<br>')}</td></tr>`;
+  }
+  function section(title) {
+    return `<tr><td colspan="2" class="section-title">${title}</td></tr>`;
+  }
+  function maybeSection(title, rows) {
+    const content = rows.filter(Boolean).join('');
+    if (!content) return '';
+    return section(title) + content;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Candidature — ${d.nom || ''} ${d.prenom || ''}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; font-size: 11pt; color: #1a1a2e; background: #fff; }
+  .header { display: flex; align-items: center; gap: 16px; padding: 20px 28px 14px; border-bottom: 2px solid #0f1f3d; }
+  .logo-box { width: 48px; height: 48px; background: #0f1f3d; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-box span { color: #fff; font-size: 1.3rem; }
+  .logo-text h1 { font-family: Georgia, serif; font-size: 15pt; font-weight: normal; color: #0f1f3d; }
+  .logo-text p { font-size: 8pt; color: #2667b0; margin-top: 2px; }
+  .doc-title { margin: 12px 28px 0; padding-bottom: 6px; border-bottom: 1px solid #d4c9b4; }
+  .doc-title h2 { font-size: 13pt; font-weight: bold; color: #0f1f3d; font-family: Georgia, serif; }
+  .doc-title .date { font-size: 8.5pt; color: #777; margin-top: 3px; font-family: Arial, sans-serif; }
+  table { width: 100%; border-collapse: collapse; margin: 0 28px; width: calc(100% - 56px); }
+  td { padding: 5px 8px; vertical-align: top; font-size: 9.5pt; border-bottom: 1px solid #f0ece3; font-family: Arial, sans-serif; }
+  .lbl { width: 38%; color: #5a6070; font-size: 8.5pt; padding-top: 6px; }
+  .val { color: #1a1a2e; font-size: 9.5pt; }
+  .section-title { font-family: Georgia, serif; font-size: 10pt; font-weight: bold; color: #fff; background: #0f1f3d; padding: 5px 8px; letter-spacing: .04em; margin-top: 4px; }
+  .footer { margin: 16px 28px 0; padding-top: 8px; border-top: 1px solid #d4c9b4; font-size: 7.5pt; color: #999; font-family: Arial, sans-serif; }
+  @media print {
+    @page { margin: 12mm 14mm; size: A4; }
+    body { font-size: 10pt; }
+    .no-print { display: none; }
+  }
+  .print-btn { display: block; margin: 16px 28px; padding: 8px 20px; background: #0f1f3d; color: #fff; border: none; border-radius: 4px; font-size: 10pt; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo-box"><span>🏛</span></div>
+  <div class="logo-text">
+    <h1>In Humano Veritas</h1>
+    <p>Audit d'organisation · Executive search & recrutement · Coaching de dirigeants</p>
+  </div>
+</div>
+<div class="doc-title">
+  <h2>Questionnaire de Candidature</h2>
+  <div class="date">Généré le ${new Date().toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'})}</div>
+</div>
+<button class="print-btn no-print" onclick="window.print()">🖨 Imprimer / Enregistrer en PDF</button>
+<table>
+  ${maybeSection('Poste visé', [
+    row('Société', d.societe),
+    row('Poste', d.poste)
+  ])}
+  ${maybeSection('Informations personnelles', [
+    row('Nom', d.nom),
+    row('Prénom', d.prenom),
+    row('Date de naissance', d.date_naissance),
+    row('Adresse', d.adresse),
+    row('Code postal', d.code_postal),
+    row('Ville / Pays', d.ville_pays),
+    row('Téléphone', d.telephone),
+    row('E-mail', d.email)
+  ])}
+  ${maybeSection('Compétences linguistiques', [
+    row('Français — Écrit / Parlé / Lu', [d.fr_ecrit, d.fr_parle, d.fr_lu].filter(Boolean).join(' / ')),
+    row('Anglais — Écrit / Parlé / Lu', [d.en_ecrit, d.en_parle, d.en_lu].filter(Boolean).join(' / ')),
+    d.langue3_nom ? row(d.langue3_nom + ' — Écrit / Parlé / Lu', [d.l3_ecrit, d.l3_parle, d.l3_lu].filter(Boolean).join(' / ')) : '',
+    d.langue4_nom ? row(d.langue4_nom + ' — Écrit / Parlé / Lu', [d.l4_ecrit, d.l4_parle, d.l4_lu].filter(Boolean).join(' / ')) : ''
+  ])}
+  ${(()=>{
+    let rows = '';
+    for(let i=1;i<=3;i++){
+      const debut=d['formation'+i+'_debut'], fin=d['formation'+i+'_fin'], ecole=d['formation'+i+'_ecole'], diplome=d['formation'+i+'_diplome'];
+      if(ecole||diplome) rows += row('Formation '+(i), [debut&&fin?debut+' – '+fin:'', ecole, diplome].filter(Boolean).join(' · '));
+    }
+    return rows ? section('Formation') + rows : '';
+  })()}
+  ${maybeSection('Expérience actuelle', [
+    row('Période', [d.exp0_debut, d.exp0_fin].filter(Boolean).join(' – ')),
+    row('Employeur', d.exp0_employeur),
+    row('Poste', d.exp0_poste),
+    row('Localisation', d.exp0_localisation),
+    row('Taille entreprise', d.exp0_taille),
+    row('Secteur', d.exp0_secteur),
+    row('Responsabilités', d.exp0_responsabilites),
+    row('Résultats', d.exp0_resultats),
+    row('Apprentissages', d.exp0_apprentissages)
+  ])}
+  ${(()=>{
+    let out = '';
+    for(let i=1;i<=3;i++){
+      const emp=d['prev'+i+'_employeur'], poste=d['prev'+i+'_poste'];
+      if(!emp&&!poste) continue;
+      out += section('Expérience antérieure '+i);
+      out += row('Période', [d['prev'+i+'_debut'],d['prev'+i+'_fin']].filter(Boolean).join(' – '));
+      out += row('Employeur', emp);
+      out += row('Poste', poste);
+      out += row('Localisation', d['prev'+i+'_localisation']);
+      out += row('Taille', d['prev'+i+'_taille']);
+      out += row('Secteur', d['prev'+i+'_secteur']);
+      out += row('Responsabilités', d['prev'+i+'_responsabilites']);
+      out += row('Résultats', d['prev'+i+'_resultats']);
+      out += row('Apprentissages', d['prev'+i+'_apprentissages']);
+      out += row('Raisons du départ', d['prev'+i+'_depart']);
+    }
+    return out;
+  })()}
+  ${maybeSection('Motivations & Compétences', [
+    row('Forces', d.forces),
+    row('Faiblesses', d.faiblesses),
+    row('Raisons de candidature', d.raisons_candidature),
+    row('Compétences pour le poste', d.competences_poste),
+    row('Attentes', d.attentes),
+    row('Ambitions', d.ambitions),
+    row('Passions / Centres d\'intérêt', d.passions)
+  ])}
+  ${maybeSection('Mobilité & Conditions', [
+    row('Mobilité géographique', d.mobilite_geo),
+    row('Commentaires mobilité', d.mobilite_commentaires),
+    row('Déplacements', d.deplacements),
+    row('Déplacements actuels (j/an)', d.deplacements_actuels),
+    row('Déplacements souhaités (j/an)', d.deplacements_souhaites),
+    row('Permis de conduire', d.permis),
+    row('Type de permis', d.permis_type)
+  ])}
+  ${maybeSection('Conditions salariales', [
+    row('Salaire fixe actuel', d.salaire_fixe_actuel),
+    row('Variable actuel', d.salaire_variable_actuel),
+    row('Autre (actuel)', d.salaire_autre_actuel),
+    row('Prétention fixe', d.pretention_fixe),
+    row('Prétention variable', d.pretention_variable),
+    row('Autre prétention', d.pretention_autre),
+    row('Contrat actuel', d.contrat_conditions),
+    row('Disponibilité', d.disponibilite)
+  ])}
+  ${maybeSection('Références professionnelles', [
+    row('Référence 1', d.ref1),
+    row('Référence 2', d.ref2),
+    row('Autre référence', d.ref3)
+  ])}
+</table>
+<div id="empty-notice" style="display:none;margin:24px 28px;padding:12px 16px;border:1px solid #e0d5c0;background:#fffdf7;color:#9a7c3a;font-family:Arial,sans-serif;font-size:9pt;border-radius:3px;">
+  ⚠️ Aucune donnée renseignée — veuillez remplir le formulaire avant d'imprimer.
+</div>
+<div class="footer">
+  Document confidentiel — In Humano Veritas · contact@inhumanoveritas.com
+</div>
+<script>
+  const tds = document.querySelectorAll('td.val');
+  if(tds.length === 0) document.getElementById('empty-notice').style.display = 'block';
+<\/script>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+// Demo: open print with sample data to preview layout
+function printFormDemo() {
+  const demo = {
+    nom: 'Dupont', prenom: 'Marie',
+    societe: 'BNP Paribas', poste: 'Directrice Financière',
+    date_naissance: '15/06/1985',
+    adresse: '12 rue de Rivoli', code_postal: '75001', ville_pays: 'Paris, France',
+    telephone: '+33 6 12 34 56 78', email: 'marie.dupont@email.com',
+    fr_ecrit: '6', fr_parle: '6', fr_lu: '6',
+    en_ecrit: '5', en_parle: '4', en_lu: '5',
+    langue3_nom: 'Espagnol', l3_ecrit: '3', l3_parle: '3', l3_lu: '4',
+    formation1_debut: '2006', formation1_fin: '2008', formation1_ecole: 'HEC Paris', formation1_diplome: 'Master Finance',
+    formation2_debut: '2003', formation2_fin: '2006', formation2_ecole: 'Université Paris-Dauphine', formation2_diplome: 'Licence Économie',
+    exp0_debut: 'Jan 2018', exp0_fin: "Aujourd'hui", exp0_employeur: 'BNP Paribas', exp0_poste: 'Responsable Contrôle de Gestion', exp0_localisation: 'Paris',
+    exp0_taille: '> 1 000 salariés', exp0_secteur: 'Banque & Finance',
+    exp0_responsabilites: 'Pilotage du budget consolidé (€2Md), reporting mensuel au COMEX, encadrement d'une équipe de 8 contrôleurs de gestion.',
+    exp0_resultats: 'Réduction de 15% des délais de clôture. Mise en place d'un outil de reporting BI (Power BI).',
+    exp0_apprentissages: 'Management d'équipe en environnement complexe, communication avec la direction générale.',
+    prev1_debut: 'Sep 2013', prev1_fin: 'Dec 2017', prev1_employeur: 'Société Générale', prev1_poste: 'Analyste Financier Senior', prev1_localisation: 'Paris',
+    prev1_taille: '> 1 000 salariés', prev1_secteur: 'Banque',
+    prev1_responsabilites: 'Analyse de portefeuilles corporate, valorisation et suivi de risques.',
+    prev1_resultats: 'Contribution à 3 opérations M&A pour un montant total de €500M.',
+    prev1_apprentissages: 'Rigueur analytique, travail sous pression, communication client.',
+    prev1_depart: 'Opportunité de management chez BNP Paribas.',
+    forces: 'Rigueur analytique, leadership naturel, capacité à vulgariser des données complexes.',
+    faiblesses: 'Tendance au perfectionnisme, difficulté à déléguer sur les sujets techniques.',
+    raisons_candidature: 'Attirée par la dimension conseil stratégique d'IHV et la diversité des secteurs d'intervention.',
+    competences_poste: 'Maîtrise des outils financiers, expérience en management, capacité à mener des missions de transformation.',
+    attentes: 'Un environnement stimulant avec forte autonomie et impact réel sur les organisations.',
+    ambitions: 'Évoluer vers un rôle de Directrice Associée à horizon 3-5 ans.',
+    passions: 'Randonnée, lecture (économie comportementale), mentorat de jeunes diplômées.',
+    mobilite_geo: 'Oui', deplacements: 'Oui', deplacements_actuels: '20', deplacements_souhaites: '30',
+    permis: 'Oui', permis_type: 'B',
+    salaire_fixe_actuel: '75 000 €', salaire_variable_actuel: '10 000 €',
+    pretention_fixe: '85 000 €', pretention_variable: '15 000 €',
+    contrat_conditions: 'CDI — préavis 3 mois', disponibilite: '01/09/2026',
+    ref1: 'Jean Martin — DG BNP Paribas Corporate — 06 11 22 33 44',
+    ref2: 'Sophie Laurent — DRH Société Générale — 06 55 66 77 88'
+  };
+
+  // Reuse printForm logic with demo data
+  const savedCollect = window.collectData;
+  window.collectData = () => demo;
+  printForm();
+  window.collectData = savedCollect;
 }
 </script>
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
